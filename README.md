@@ -2,15 +2,24 @@
 
 A GNOME Shell extension for monitoring battery state on Hackberry Pi CM5 devices using the MAX17048 fuel gauge IC. Displays battery percentage and voltage in the GNOME top panel.
 
+## Version 0.2.2 (2025-06-26)
+
+### What's New
+- **Configurable refresh interval** (5-60 seconds) via settings UI
+- **Settings UI** accessible through GNOME Extensions app preferences
+- **Improved charging detection** with lower threshold (0.2%/hr)
+- **Faster default refresh** (15 seconds instead of 30)
+- **Fixed install script** to prevent GUI freezing during updates
+
 ## Features
 
 - Real-time battery percentage and voltage monitoring
-- **NEW:** Charging detection with visual indicators
+- Charging detection with visual indicators (lightning bolt icon)
+- Configurable refresh interval (5-60 seconds) via settings UI
 - GNOME Shell integration with panel indicator
 - Dynamic battery icon based on charge level
-- Charging icon (with lightning bolt) when plugged in
 - Dropdown menu showing voltage, status, and charge/discharge rate
-- Automatic updates every 30 seconds
+- Automatic I2C bus detection (no more hardcoded bus numbers!)
 - Support for GNOME Shell versions 42-47
 
 ## Requirements
@@ -87,9 +96,17 @@ This will continuously display the battery voltage. Press `Ctrl+C` to stop.
 ## Configuration
 
 The extension uses the following default settings:
-- I2C Bus: 11
+- I2C Bus: Auto-detected (scans available buses)
 - I2C Address: 0x36 (MAX17048 default)
-- Update Interval: 30 seconds
+- Update Interval: 15 seconds (configurable 5-60 seconds)
+
+### Settings UI
+
+Access extension preferences by:
+1. Opening GNOME Extensions app
+2. Finding "Hackberry Battery Monitor"
+3. Clicking the settings/gear icon
+4. Adjust refresh interval to your preference
 
 ### Battery Status Levels
 - **Full**: > 80%
@@ -109,7 +126,10 @@ batmon/
 └── hackberry-battery@batmon/       # GNOME extension files
     ├── extension.js                # Main extension code
     ├── metadata.json               # Extension metadata
-    └── battery-reader.py           # Python script with charging detection
+    ├── battery-reader.py           # Python script with charging detection
+    ├── prefs.js                    # Settings UI
+    └── schemas/                    # GSettings schema files
+        └── org.gnome.shell.extensions.hackberry-battery.gschema.xml
 ```
 
 ## Uninstallation
@@ -144,8 +164,9 @@ Then log out and back in.
 
 ### Battery Reading Errors
 - Verify I2C is enabled: `ls /dev/i2c*`
-- Check I2C device is detected: `sudo i2cdetect -y 11`
+- Check I2C device is detected: `sudo i2cdetect -y [bus_number]` (try different bus numbers)
 - Ensure MAX17048 is at address 0x36
+- Check extension logs: `journalctl -xe | grep hackberry-battery`
 
 ## License
 

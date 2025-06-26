@@ -1,4 +1,4 @@
-const { St, GLib, Gio, Clutter } = imports.gi;
+const { St, GLib, Gio, Clutter, GObject } = imports.gi;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
@@ -6,6 +6,7 @@ const PopupMenu = imports.ui.popupMenu;
 let indicator;
 let timeout;
 
+const BatteryIndicator = GObject.registerClass(
 class BatteryIndicator extends PanelMenu.Button {
     _init() {
         super._init(0.0, 'Hackberry Battery Indicator');
@@ -150,7 +151,7 @@ class BatteryIndicator extends PanelMenu.Button {
         }
         super.destroy();
     }
-}
+});
 
 function init() {
 }

@@ -23,10 +23,19 @@ if [ -d "$EXTENSION_DIR" ]; then
     echo -e "${YELLOW}Existing installation detected. Updating...${NC}"
     MODE="update"
     
-    # Disable extension before updating
+    # Disable extension before updating to prevent GUI freeze
     if command -v gnome-extensions &> /dev/null; then
         echo "Disabling extension for update..."
         gnome-extensions disable "$EXTENSION_NAME" 2>/dev/null || true
+        echo "Waiting for GNOME Shell to process the disable command..."
+        sleep 3  # Give GNOME Shell time to fully disable the extension
+        
+        # Verify the extension is disabled
+        if gnome-extensions list --enabled | grep -q "$EXTENSION_NAME"; then
+            echo -e "${YELLOW}Warning: Extension may still be enabled. Proceeding with caution...${NC}"
+        else
+            echo -e "${GREEN}✓ Extension successfully disabled${NC}"
+        fi
     fi
 else
     echo -e "${GREEN}No existing installation found. Installing fresh...${NC}"
@@ -66,6 +75,7 @@ fi
 # Enable extension if gnome-extensions command is available
 if command -v gnome-extensions &> /dev/null; then
     echo -e "\n${YELLOW}Enabling extension...${NC}"
+    sleep 2  # Give GNOME Shell time to process file changes
     gnome-extensions enable "$EXTENSION_NAME" 2>/dev/null || {
         echo -e "${YELLOW}Could not enable extension automatically.${NC}"
         echo "You may need to restart GNOME Shell first."
