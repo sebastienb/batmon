@@ -4,20 +4,74 @@ import json
 import sys
 import glob
 import os
+import time
+
+# Cache file for storing last known I2C bus
+CACHE_FILE = "/tmp/.max17048_i2c_bus_cache"
+CACHE_MAX_AGE = 86400  # 24 hours
 
 class MAX17048:
     def __init__(self, i2c_bus=None, i2c_address=0x36):
         self.address = i2c_address
         
         if i2c_bus is None:
-            i2c_bus = self._find_i2c_bus()
+            # Try to use cached bus first
+            i2c_bus = self._get_cached_bus()
+            if i2c_bus is not None:
+                # Verify the cached bus still works
+                if self._verify_bus(i2c_bus):
+                    sys.stderr.write(f"Using cached I2C bus {i2c_bus}\n")
+                else:
+                    sys.stderr.write(f"Cached I2C bus {i2c_bus} no longer valid, scanning...\n")
+                    i2c_bus = self._find_i2c_bus()
+            else:
+                i2c_bus = self._find_i2c_bus()
         
         if i2c_bus is None:
             raise Exception("MAX17048 device not found on any I2C bus")
             
         self.bus = smbus2.SMBus(i2c_bus)
         self.bus_number = i2c_bus
+        
+        # Update cache with current bus
+        self._cache_bus(i2c_bus)
 
+    def _get_cached_bus(self):
+        """Get the last known I2C bus from cache"""
+        try:
+            if os.path.exists(CACHE_FILE):
+                # Check if cache is recent enough
+                cache_age = time.time() - os.path.getmtime(CACHE_FILE)
+                if cache_age < CACHE_MAX_AGE:
+                    with open(CACHE_FILE, 'r') as f:
+                        return int(f.read().strip())
+        except Exception:
+            pass
+        return None
+    
+    def _cache_bus(self, bus_num):
+        """Cache the I2C bus number"""
+        try:
+            with open(CACHE_FILE, 'w') as f:
+                f.write(str(bus_num))
+        except Exception:
+            pass
+    
+    def _verify_bus(self, bus_num):
+        """Verify that a device exists on the given bus"""
+        try:
+            test_bus = smbus2.SMBus(bus_num)
+            # Try to read from the device with timeout
+            test_bus.read_i2c_block_data(self.address, 0x02, 2)
+            test_bus.close()
+            return True
+        except Exception:
+            try:
+                test_bus.close()
+            except:
+                pass
+            return False
+    
     def _find_i2c_bus(self):
         """Scan available I2C buses to find the MAX17048 device"""
         # Find all available I2C devices
@@ -51,7 +105,8 @@ class MAX17048:
 
     def read_voltage(self):
         try:
-            # Read voltage registers (0x02 and 0x03)
+            # Read voltage registers (0x02 and 0x03) with timeout
+            # Note: smbus2 doesn't have built-in timeout, but Python process timeout handles this
             read = self.bus.read_i2c_block_data(self.address, 0x02, 2)
             
             # Combine the bytes and convert to voltage

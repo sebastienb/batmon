@@ -54,6 +54,12 @@ class BatteryIndicator extends PanelMenu.Button {
         
         // Start updates
         this._updateBattery();
+        
+        // Schedule periodic updates (every 15 seconds by default)
+        timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 15, () => {
+            this._updateBattery();
+            return GLib.SOURCE_CONTINUE;
+        });
     }
     
     _updateBattery() {
@@ -62,7 +68,7 @@ class BatteryIndicator extends PanelMenu.Button {
             let batteryReaderPath = GLib.build_filenamev([extensionPath, 'battery-reader.py']);
             
             let proc = Gio.Subprocess.new(
-                ['python3', batteryReaderPath],
+                ['timeout', '2', 'python3', batteryReaderPath],  // 2 second timeout
                 Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
             );
             
@@ -138,10 +144,8 @@ class BatteryIndicator extends PanelMenu.Button {
         }
         
         // Schedule next update (every 30 seconds)
-        timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 30, () => {
-            this._updateBattery();
-            return GLib.SOURCE_CONTINUE;
-        });
+        // IMPORTANT: Don't schedule inside _updateBattery to prevent timer accumulation
+        // This is now handled in the _init method
     }
     
     destroy() {
