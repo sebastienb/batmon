@@ -2,11 +2,52 @@
 import smbus2
 import json
 import sys
+import glob
+import os
 
 class MAX17048:
-    def __init__(self, i2c_bus=13, i2c_address=0x36):
-        self.bus = smbus2.SMBus(i2c_bus)
+    def __init__(self, i2c_bus=None, i2c_address=0x36):
         self.address = i2c_address
+        
+        if i2c_bus is None:
+            i2c_bus = self._find_i2c_bus()
+        
+        if i2c_bus is None:
+            raise Exception("MAX17048 device not found on any I2C bus")
+            
+        self.bus = smbus2.SMBus(i2c_bus)
+        self.bus_number = i2c_bus
+
+    def _find_i2c_bus(self):
+        """Scan available I2C buses to find the MAX17048 device"""
+        # Find all available I2C devices
+        i2c_devices = glob.glob('/dev/i2c-*')
+        
+        for device_path in i2c_devices:
+            # Extract bus number from device path
+            bus_num = int(device_path.split('-')[-1])
+            
+            try:
+                # Try to open the bus and check for our device
+                test_bus = smbus2.SMBus(bus_num)
+                
+                # Try to read from the device at our address
+                # We'll try to read the voltage register as a test
+                test_bus.read_i2c_block_data(self.address, 0x02, 2)
+                
+                # If we get here, the device responded
+                test_bus.close()
+                return bus_num
+                
+            except Exception:
+                # Device not found on this bus, continue
+                try:
+                    test_bus.close()
+                except:
+                    pass
+                continue
+        
+        return None
 
     def read_voltage(self):
         try:
@@ -99,6 +140,9 @@ if __name__ == "__main__":
                 result["status"] = "low"
             else:
                 result["status"] = "critical"
+        
+        # Add debug info about which bus was found (only visible in stderr for debugging)
+        sys.stderr.write(f"Found MAX17048 on I2C bus {max17048.bus_number}\n")
         
         print(json.dumps(result))
         

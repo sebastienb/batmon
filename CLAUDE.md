@@ -6,7 +6,8 @@
 - Current version: **v0.2.1** (released 2025-06-26)
 - GitHub: https://github.com/sebastienb/batmon
 
-## Latest Updates (v0.2.1)
+## Latest Updates (v0.2.1+)
+- ✅ **NEW**: Added automatic I2C bus detection - no more hardcoded bus numbers!
 - ✅ Fixed I2C bus detection (changed from bus 11 to bus 13)
 - ✅ Fixed GNOME Shell 43 compatibility with GObject.registerClass syntax
 - ✅ Extension now properly displays battery values
@@ -31,11 +32,14 @@
   - Version number
 
 ## Technical Details
-- Uses MAX17048 fuel gauge IC on I2C bus 13, address 0x36
+- Uses MAX17048 fuel gauge IC at address 0x36 with **automatic I2C bus detection**
+- Scans `/dev/i2c-*` devices to find the correct bus (currently bus 13)
 - Reads voltage (registers 0x02-0x03), SOC (0x04-0x05), and CRATE (0x16)
 - `battery-reader.py` returns JSON with voltage, percentage, status, charging, and charge_rate
+- Debug output shows which I2C bus was detected
 
 ## Resolved Issues
+- ✅ **MAJOR**: Implemented automatic I2C bus detection (v0.2.1+) - prevents future bus numbering issues
 - ✅ Fixed I2C bus detection issue (v0.2.1): Changed from bus 11 to bus 13
 - ✅ Fixed GNOME Shell 43 compatibility (v0.2.1): Used GObject.registerClass syntax
 - ✅ Fixed ES6 module syntax incompatibility with GNOME Shell 43
