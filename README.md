@@ -1,12 +1,16 @@
 # Hackberry Battery Monitor
 
-A GNOME Shell extension for monitoring battery voltage on Hackberry Pi CM5 devices using the MAX17048 fuel gauge IC.
+A GNOME Shell extension for monitoring battery state on Hackberry Pi CM5 devices using the MAX17048 fuel gauge IC. Displays battery percentage and voltage in the GNOME top panel.
 
 ## Features
 
-- Real-time battery voltage monitoring
+- Real-time battery percentage and voltage monitoring
+- **NEW:** Charging detection with visual indicators
 - GNOME Shell integration with panel indicator
-- Automatic updates every 10 seconds
+- Dynamic battery icon based on charge level
+- Charging icon (with lightning bolt) when plugged in
+- Dropdown menu showing voltage, status, and charge/discharge rate
+- Automatic updates every 30 seconds
 - Support for GNOME Shell versions 42-47
 
 ## Requirements
@@ -39,10 +43,22 @@ sudo raspi-config
 Clone the repository and run the installation script:
 
 ```bash
-git clone https://github.com/yourusername/batmon.git
+git clone https://github.com/sebastienb/batmon.git
 cd batmon
-./install.sh
+./install-or-update.sh
 ```
+
+### Updating the Extension
+
+To update to the latest version:
+
+```bash
+cd batmon
+git pull
+./install-or-update.sh
+```
+
+The script will automatically handle the update process and preserve your settings.
 
 ### 4. Enable the Extension
 
@@ -73,19 +89,41 @@ This will continuously display the battery voltage. Press `Ctrl+C` to stop.
 The extension uses the following default settings:
 - I2C Bus: 11
 - I2C Address: 0x36 (MAX17048 default)
-- Update Interval: 10 seconds
+- Update Interval: 30 seconds
+
+### Battery Status Levels
+- **Full**: > 80%
+- **Good**: 60-80%
+- **Medium**: 40-60%
+- **Low**: 20-40%
+- **Critical**: < 20%
 
 ## File Structure
 
 ```
 batmon/
 ├── get_battery_voltage.py          # Standalone battery voltage reader
-├── install.sh                      # Installation script
+├── install.sh                      # Legacy installation script
+├── install-or-update.sh            # Install/Update script (recommended)
 ├── README.md                       # This file
 └── hackberry-battery@batmon/       # GNOME extension files
     ├── extension.js                # Main extension code
     ├── metadata.json               # Extension metadata
-    └── battery-reader.py           # Python script called by extension
+    └── battery-reader.py           # Python script with charging detection
+```
+
+## Uninstallation
+
+To remove the extension:
+
+```bash
+gnome-extensions uninstall hackberry-battery@batmon
+```
+
+Or manually remove:
+
+```bash
+rm -rf ~/.local/share/gnome-shell/extensions/hackberry-battery@batmon
 ```
 
 ## Troubleshooting

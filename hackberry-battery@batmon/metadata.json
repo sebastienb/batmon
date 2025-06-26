@@ -1,8 +1,9 @@
 {
   "name": "Hackberry Battery Monitor",
-  "description": "Shows battery level for Hackberry Pi CM5",
+  "description": "Shows battery level for Hackberry Pi CM5 with charging detection",
   "uuid": "hackberry-battery@batmon",
-  "version": 1,
+  "version": "0.2.0",
+  "version-name": "0.2.0",
   "shell-version": ["42", "43", "44", "45", "46", "47"],
   "url": "https://github.com/sebastienb/batmon"
 }

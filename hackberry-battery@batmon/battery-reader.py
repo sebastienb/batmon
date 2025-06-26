@@ -36,6 +36,26 @@ class MAX17048:
         except Exception:
             return None
 
+    def read_charge_rate(self):
+        try:
+            # Read CRATE register (0x16)
+            read = self.bus.read_i2c_block_data(self.address, 0x16, 2)
+            
+            # Combine bytes into 16-bit value
+            crate_raw = (read[0] << 8) | read[1]
+            
+            # Convert to signed 16-bit
+            if crate_raw > 0x7FFF:
+                crate_raw -= 0x10000
+            
+            # Convert to %/hour (0.208%/hour per LSB)
+            crate_percent_per_hour = crate_raw * 0.208
+            
+            return crate_percent_per_hour
+            
+        except Exception:
+            return None
+
     def close(self):
         self.bus.close()
 
@@ -45,14 +65,30 @@ if __name__ == "__main__":
     try:
         voltage = max17048.read_voltage()
         percentage = max17048.read_percentage()
+        charge_rate = max17048.read_charge_rate()
         
         result = {
             "voltage": voltage,
             "percentage": percentage,
-            "status": "unknown"
+            "status": "unknown",
+            "charging": False,
+            "charge_rate": charge_rate
         }
         
-        if percentage is not None:
+        # Determine charging status
+        if charge_rate is not None:
+            if charge_rate > 1.0:  # Charging if rate > 1%/hour
+                result["charging"] = True
+                result["status"] = "charging"
+            elif charge_rate < -1.0:  # Discharging if rate < -1%/hour
+                result["charging"] = False
+                result["status"] = "discharging"
+            else:  # Near zero rate
+                result["charging"] = False
+                result["status"] = "idle"
+        
+        # Override with percentage-based status if not charging
+        if percentage is not None and result["status"] != "charging":
             if percentage > 80:
                 result["status"] = "full"
             elif percentage > 60:

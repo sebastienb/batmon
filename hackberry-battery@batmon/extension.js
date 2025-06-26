@@ -37,6 +37,20 @@ class BatteryIndicator extends PanelMenu.Button {
         this.statusItem.reactive = false;
         this.menu.addMenuItem(this.statusItem);
         
+        this.chargeRateItem = new PopupMenu.PopupMenuItem('Charge Rate: --');
+        this.chargeRateItem.reactive = false;
+        this.menu.addMenuItem(this.chargeRateItem);
+        
+        // Add separator
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        
+        // Add version info
+        let metadata = imports.misc.extensionUtils.getCurrentExtension().metadata;
+        let version = metadata['version-name'] || metadata['version'] || 'Unknown';
+        this.versionItem = new PopupMenu.PopupMenuItem(`Version: ${version}`);
+        this.versionItem.reactive = false;
+        this.menu.addMenuItem(this.versionItem);
+        
         // Start updates
         this._updateBattery();
     }
@@ -66,18 +80,34 @@ class BatteryIndicator extends PanelMenu.Button {
                             if (data.percentage !== null) {
                                 this.label.set_text(` ${Math.round(data.percentage)}%`);
                                 
-                                // Update icon based on percentage
+                                // Update icon based on percentage and charging status
                                 let iconName;
-                                if (data.percentage > 90) {
-                                    iconName = 'battery-full-symbolic';
-                                } else if (data.percentage > 70) {
-                                    iconName = 'battery-good-symbolic';
-                                } else if (data.percentage > 30) {
-                                    iconName = 'battery-medium-symbolic';
-                                } else if (data.percentage > 10) {
-                                    iconName = 'battery-low-symbolic';
+                                if (data.charging) {
+                                    // Use charging icons when plugged in
+                                    if (data.percentage > 90) {
+                                        iconName = 'battery-full-charging-symbolic';
+                                    } else if (data.percentage > 70) {
+                                        iconName = 'battery-good-charging-symbolic';
+                                    } else if (data.percentage > 30) {
+                                        iconName = 'battery-medium-charging-symbolic';
+                                    } else if (data.percentage > 10) {
+                                        iconName = 'battery-low-charging-symbolic';
+                                    } else {
+                                        iconName = 'battery-empty-charging-symbolic';
+                                    }
                                 } else {
-                                    iconName = 'battery-empty-symbolic';
+                                    // Use regular icons when not charging
+                                    if (data.percentage > 90) {
+                                        iconName = 'battery-full-symbolic';
+                                    } else if (data.percentage > 70) {
+                                        iconName = 'battery-good-symbolic';
+                                    } else if (data.percentage > 30) {
+                                        iconName = 'battery-medium-symbolic';
+                                    } else if (data.percentage > 10) {
+                                        iconName = 'battery-low-symbolic';
+                                    } else {
+                                        iconName = 'battery-empty-symbolic';
+                                    }
                                 }
                                 this.icon.icon_name = iconName;
                             }
@@ -87,7 +117,12 @@ class BatteryIndicator extends PanelMenu.Button {
                                 this.voltageItem.label.set_text(`Voltage: ${data.voltage.toFixed(2)}V`);
                             }
                             if (data.status) {
-                                this.statusItem.label.set_text(`Status: ${data.status}`);
+                                let statusText = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                                this.statusItem.label.set_text(`Status: ${statusText}`);
+                            }
+                            if (data.charge_rate !== null) {
+                                let rateText = data.charge_rate > 0 ? `+${data.charge_rate.toFixed(1)}%/hr` : `${data.charge_rate.toFixed(1)}%/hr`;
+                                this.chargeRateItem.label.set_text(`Charge Rate: ${rateText}`);
                             }
                         }
                     }
