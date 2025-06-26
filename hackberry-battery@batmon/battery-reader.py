@@ -4,7 +4,7 @@ import json
 import sys
 
 class MAX17048:
-    def __init__(self, i2c_bus=11, i2c_address=0x36):
+    def __init__(self, i2c_bus=13, i2c_address=0x36):
         self.bus = smbus2.SMBus(i2c_bus)
         self.address = i2c_address
 
