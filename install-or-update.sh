@@ -18,25 +18,31 @@ EXTENSION_DIR="$HOME/.local/share/gnome-shell/extensions/$EXTENSION_NAME"
 echo -e "${GREEN}Hackberry Battery Monitor - Install/Update Script${NC}"
 echo "================================================="
 
+# Always try to disable the extension first, even if we think it's a fresh install
+# This prevents issues if the extension is partially installed or in a bad state
+if command -v gnome-extensions &> /dev/null; then
+    echo "Ensuring extension is disabled before installation/update..."
+    
+    # Force disable, ignoring errors
+    gnome-extensions disable "$EXTENSION_NAME" 2>/dev/null || true
+    
+    # Give GNOME Shell plenty of time to process
+    echo "Waiting for GNOME Shell to fully disable the extension..."
+    sleep 5  # Increased wait time
+    
+    # Double-check and try again if needed
+    if gnome-extensions list --enabled 2>/dev/null | grep -q "$EXTENSION_NAME"; then
+        echo -e "${YELLOW}Extension still enabled, trying harder...${NC}"
+        # Try to unload it more forcefully
+        gnome-extensions reset "$EXTENSION_NAME" 2>/dev/null || true
+        sleep 3
+    fi
+fi
+
 # Check if this is an update or fresh install
 if [ -d "$EXTENSION_DIR" ]; then
     echo -e "${YELLOW}Existing installation detected. Updating...${NC}"
     MODE="update"
-    
-    # Disable extension before updating to prevent GUI freeze
-    if command -v gnome-extensions &> /dev/null; then
-        echo "Disabling extension for update..."
-        gnome-extensions disable "$EXTENSION_NAME" 2>/dev/null || true
-        echo "Waiting for GNOME Shell to process the disable command..."
-        sleep 3  # Give GNOME Shell time to fully disable the extension
-        
-        # Verify the extension is disabled
-        if gnome-extensions list --enabled | grep -q "$EXTENSION_NAME"; then
-            echo -e "${YELLOW}Warning: Extension may still be enabled. Proceeding with caution...${NC}"
-        else
-            echo -e "${GREEN}✓ Extension successfully disabled${NC}"
-        fi
-    fi
 else
     echo -e "${GREEN}No existing installation found. Installing fresh...${NC}"
     MODE="install"
@@ -44,6 +50,18 @@ fi
 
 # Create extension directory if it doesn't exist
 mkdir -p "$EXTENSION_DIR"
+
+# Final safety check before copying
+if command -v gnome-extensions &> /dev/null; then
+    if gnome-extensions list --enabled 2>/dev/null | grep -q "$EXTENSION_NAME"; then
+        echo -e "${RED}ERROR: Extension is still enabled!${NC}"
+        echo "This could cause GUI crashes. Please manually disable it:"
+        echo "  gnome-extensions disable $EXTENSION_NAME"
+        echo "Or restart GNOME Shell (Alt+F2, type 'r', press Enter)"
+        echo "Then run this script again."
+        exit 1
+    fi
+fi
 
 # Copy extension files
 echo "Copying extension files..."
@@ -64,12 +82,12 @@ fi
 
 # Check if I2C is available
 echo -e "\n${YELLOW}Checking I2C availability...${NC}"
-if [ ! -e "/dev/i2c-11" ]; then
-    echo -e "${YELLOW}Warning: /dev/i2c-11 not found${NC}"
+if ls /dev/i2c-* 1> /dev/null 2>&1; then
+    echo -e "${GREEN}✓ I2C devices found (automatic detection enabled)${NC}"
+else
+    echo -e "${YELLOW}Warning: No I2C devices found${NC}"
     echo "Make sure I2C is enabled on your Hackberry CM5"
     echo "You can enable it with: sudo raspi-config"
-else
-    echo -e "${GREEN}✓ I2C device found${NC}"
 fi
 
 # Enable extension if gnome-extensions command is available
