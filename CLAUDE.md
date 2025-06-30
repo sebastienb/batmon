@@ -3,10 +3,16 @@
 ## Project Overview
 - Hackberry Battery Monitor GNOME extension (`hackberry-battery@batmon`)
 - Located at: `/home/sebs/.local/share/gnome-shell/extensions/hackberry-battery@batmon/`
-- Current version: **v0.2.3** (released 2025-06-27)
+- Current version: **v0.2.4** (released 2025-06-30)
 - GitHub: https://github.com/sebastienb/batmon
 
-## Latest Updates (v0.2.3)
+## Latest Updates (v0.2.4)
+- ✅ **IMPROVED**: Enhanced charging detection sensitivity (threshold lowered from 1.0%/hr to 0.2%/hr)
+- ✅ **UPDATED**: Modernized battery icons to use GNOME's 10% increment system
+- ✅ **NEW**: More granular battery level representation (every 10% instead of 4 levels)
+- ✅ Added support for battery-level-100-charged-symbolic icon
+
+## Previous Updates (v0.2.3)
 - ✅ **CRITICAL FIX**: Fixed GUI freeze bug caused by timer accumulation
 - ✅ Added I2C bus caching for improved performance
 - ✅ Added 2-second timeout protection for I2C operations
@@ -72,6 +78,7 @@ journalctl -xe | grep -A5 -B5 "hackberry-battery"
 ```
 
 ## Release History
+- **v0.2.4** (2025-06-30): Improved charging detection sensitivity, modernized battery icons
 - **v0.2.3** (2025-06-27): CRITICAL: Fixed GUI freeze bug, added I2C bus caching, timeout protection
 - **v0.2.2** (2025-06-26): Added settings UI, configurable refresh interval, improved charging detection
 - **v0.2.1** (2025-06-26): Fixed I2C bus detection, GNOME Shell 43 compatibility
