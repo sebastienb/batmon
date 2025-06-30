@@ -13,7 +13,7 @@ class BatteryIndicator extends PanelMenu.Button {
         
         // Create icon
         this.icon = new St.Icon({
-            icon_name: 'battery-full-symbolic',
+            icon_name: 'battery-level-100-symbolic',
             style_class: 'system-status-icon'
         });
         
@@ -90,32 +90,63 @@ class BatteryIndicator extends PanelMenu.Button {
                                 // Update icon based on percentage and charging status
                                 let iconName;
                                 if (data.charging) {
-                                    // Use charging icons when plugged in
-                                    if (data.percentage > 90) {
-                                        iconName = 'battery-full-charging-symbolic';
-                                    } else if (data.percentage > 70) {
-                                        iconName = 'battery-good-charging-symbolic';
-                                    } else if (data.percentage > 30) {
-                                        iconName = 'battery-medium-charging-symbolic';
-                                    } else if (data.percentage > 10) {
-                                        iconName = 'battery-low-charging-symbolic';
+                                    // Use modern charging icons with 10% increments
+                                    if (data.percentage === 100) {
+                                        iconName = 'battery-level-100-charged-symbolic';
+                                    } else if (data.percentage >= 95) {
+                                        iconName = 'battery-level-100-charging-symbolic';
+                                    } else if (data.percentage >= 85) {
+                                        iconName = 'battery-level-90-charging-symbolic';
+                                    } else if (data.percentage >= 75) {
+                                        iconName = 'battery-level-80-charging-symbolic';
+                                    } else if (data.percentage >= 65) {
+                                        iconName = 'battery-level-70-charging-symbolic';
+                                    } else if (data.percentage >= 55) {
+                                        iconName = 'battery-level-60-charging-symbolic';
+                                    } else if (data.percentage >= 45) {
+                                        iconName = 'battery-level-50-charging-symbolic';
+                                    } else if (data.percentage >= 35) {
+                                        iconName = 'battery-level-40-charging-symbolic';
+                                    } else if (data.percentage >= 25) {
+                                        iconName = 'battery-level-30-charging-symbolic';
+                                    } else if (data.percentage >= 15) {
+                                        iconName = 'battery-level-20-charging-symbolic';
+                                    } else if (data.percentage >= 5) {
+                                        iconName = 'battery-level-10-charging-symbolic';
                                     } else {
-                                        iconName = 'battery-empty-charging-symbolic';
+                                        iconName = 'battery-level-0-charging-symbolic';
                                     }
                                 } else {
-                                    // Use regular icons when not charging
-                                    if (data.percentage > 90) {
-                                        iconName = 'battery-full-symbolic';
-                                    } else if (data.percentage > 70) {
-                                        iconName = 'battery-good-symbolic';
-                                    } else if (data.percentage > 30) {
-                                        iconName = 'battery-medium-symbolic';
-                                    } else if (data.percentage > 10) {
-                                        iconName = 'battery-low-symbolic';
+                                    // Use modern regular icons with 10% increments
+                                    if (data.percentage === 100) {
+                                        iconName = 'battery-level-100-symbolic';
+                                    } else if (data.percentage >= 95) {
+                                        iconName = 'battery-level-100-symbolic';
+                                    } else if (data.percentage >= 85) {
+                                        iconName = 'battery-level-90-symbolic';
+                                    } else if (data.percentage >= 75) {
+                                        iconName = 'battery-level-80-symbolic';
+                                    } else if (data.percentage >= 65) {
+                                        iconName = 'battery-level-70-symbolic';
+                                    } else if (data.percentage >= 55) {
+                                        iconName = 'battery-level-60-symbolic';
+                                    } else if (data.percentage >= 45) {
+                                        iconName = 'battery-level-50-symbolic';
+                                    } else if (data.percentage >= 35) {
+                                        iconName = 'battery-level-40-symbolic';
+                                    } else if (data.percentage >= 25) {
+                                        iconName = 'battery-level-30-symbolic';
+                                    } else if (data.percentage >= 15) {
+                                        iconName = 'battery-level-20-symbolic';
+                                    } else if (data.percentage >= 5) {
+                                        iconName = 'battery-level-10-symbolic';
                                     } else {
-                                        iconName = 'battery-empty-symbolic';
+                                        iconName = 'battery-level-0-symbolic';
                                     }
                                 }
+                                log(`Battery: ${data.percentage}%, charging: ${data.charging}, icon: ${iconName}`);
+                                
+                                // Update the icon
                                 this.icon.icon_name = iconName;
                             }
                             

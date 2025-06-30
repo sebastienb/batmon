@@ -173,10 +173,10 @@ if __name__ == "__main__":
         
         # Determine charging status
         if charge_rate is not None:
-            if charge_rate > 1.0:  # Charging if rate > 1%/hour
+            if charge_rate > 0.2:  # Charging if rate > 0.2%/hour (lowered threshold for slow charging detection)
                 result["charging"] = True
                 result["status"] = "charging"
-            elif charge_rate < -1.0:  # Discharging if rate < -1%/hour
+            elif charge_rate < -0.2:  # Discharging if rate < -0.2%/hour
                 result["charging"] = False
                 result["status"] = "discharging"
             else:  # Near zero rate
