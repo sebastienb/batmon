@@ -2,6 +2,10 @@
 
 A GNOME Shell extension for monitoring battery state on Hackberry Pi CM5 devices using the MAX17048 fuel gauge IC. Displays battery percentage and voltage in the GNOME top panel.
 
+![Batmon for HackberryPi CM5](https://github.com/sebastienb/batmon/blob/main/screencast.gif?raw=true)
+
+This is built with claude code using the python sample provided by https://github.com/ZitaoTech/HackberryPiCM5
+
 ## Version 0.2.2 (2025-06-26)
 
 ### What's New
