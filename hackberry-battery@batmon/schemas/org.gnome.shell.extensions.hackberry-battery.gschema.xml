@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.hackberry-battery" path="/org/gnome/shell/extensions/hackberry-battery/">
+    <key name="refresh-interval" type="i">
+      <default>15</default>
+      <summary>Refresh Interval</summary>
+      <description>How often to update battery information in seconds (minimum 5, maximum 60)</description>
+      <range min="5" max="60"/>
+    </key>
+    <key name="display-mode" type="s">
+      <default>'both'</default>
+      <summary>Display Mode</summary>
+      <description>Choose what to display in the panel: 'icon' (icon only), 'percentage' (percentage only), or 'both' (icon and percentage)</description>
+      <choices>
+        <choice value='icon'/>
+        <choice value='percentage'/>
+        <choice value='both'/>
+      </choices>
+    </key>
+  </schema>
+</schemalist>

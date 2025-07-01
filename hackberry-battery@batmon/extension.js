@@ -2,14 +2,19 @@ const { St, GLib, Gio, Clutter, GObject } = imports.gi;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
+const ExtensionUtils = imports.misc.extensionUtils;
 
 let indicator;
 let timeout;
+let settings;
 
 const BatteryIndicator = GObject.registerClass(
 class BatteryIndicator extends PanelMenu.Button {
     _init() {
         super._init(0.0, 'Hackberry Battery Indicator');
+        
+        // Get settings
+        this._settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.hackberry-battery');
         
         // Create icon
         this.icon = new St.Icon({
@@ -24,10 +29,16 @@ class BatteryIndicator extends PanelMenu.Button {
         });
         
         // Add to panel
-        let box = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
-        box.add_child(this.icon);
-        box.add_child(this.label);
-        this.add_child(box);
+        this.box = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
+        this.box.add_child(this.icon);
+        this.box.add_child(this.label);
+        this.add_child(this.box);
+        this._updateDisplayMode();
+        
+        // Connect to display mode changes
+        this._displayModeChangedId = this._settings.connect('changed::display-mode', () => {
+            this._updateDisplayMode();
+        });
         
         // Create menu items
         this.voltageItem = new PopupMenu.PopupMenuItem('Voltage: --');
@@ -55,8 +66,65 @@ class BatteryIndicator extends PanelMenu.Button {
         // Start updates
         this._updateBattery();
         
-        // Schedule periodic updates (every 15 seconds by default)
-        timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 15, () => {
+        // Schedule periodic updates based on settings
+        this._startUpdateTimer();
+        
+        // Connect to refresh interval changes
+        this._refreshIntervalChangedId = this._settings.connect('changed::refresh-interval', () => {
+            this._startUpdateTimer();
+        });
+    }
+    
+    _updateDisplayMode() {
+        // Store current values
+        let currentIconName = this.icon ? this.icon.icon_name : 'battery-level-100-symbolic';
+        let currentText = this.label ? this.label.text : '--';
+        
+        // Clear the box
+        this.box.destroy_all_children();
+        
+        // Create fresh widgets
+        this.icon = new St.Icon({
+            icon_name: currentIconName,
+            style_class: 'system-status-icon'
+        });
+        
+        this.label = new St.Label({ 
+            text: currentText,
+            y_align: Clutter.ActorAlign.CENTER 
+        });
+        
+        // Get display mode
+        let displayMode = this._settings.get_string('display-mode');
+        
+        // Add children based on display mode
+        switch (displayMode) {
+            case 'icon':
+                this.box.add_child(this.icon);
+                break;
+            case 'percentage':
+                this.box.add_child(this.label);
+                break;
+            case 'both':
+            default:
+                this.box.add_child(this.icon);
+                this.box.add_child(this.label);
+                break;
+        }
+    }
+    
+    _startUpdateTimer() {
+        // Clear existing timer if any
+        if (timeout) {
+            GLib.source_remove(timeout);
+            timeout = null;
+        }
+        
+        // Get refresh interval from settings
+        let refreshInterval = this._settings.get_int('refresh-interval');
+        
+        // Start new timer
+        timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, refreshInterval, () => {
             this._updateBattery();
             return GLib.SOURCE_CONTINUE;
         });
@@ -184,6 +252,17 @@ class BatteryIndicator extends PanelMenu.Button {
             GLib.source_remove(timeout);
             timeout = null;
         }
+        
+        // Disconnect settings signals
+        if (this._displayModeChangedId) {
+            this._settings.disconnect(this._displayModeChangedId);
+            this._displayModeChangedId = 0;
+        }
+        if (this._refreshIntervalChangedId) {
+            this._settings.disconnect(this._refreshIntervalChangedId);
+            this._refreshIntervalChangedId = 0;
+        }
+        
         super.destroy();
     }
 });

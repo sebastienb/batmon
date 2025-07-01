@@ -70,6 +70,15 @@ cp -r hackberry-battery@batmon/* "$EXTENSION_DIR/"
 # Make battery reader executable
 chmod +x "$EXTENSION_DIR/battery-reader.py"
 
+# Compile GSettings schemas if they exist
+if [ -d "$EXTENSION_DIR/schemas" ]; then
+    echo "Compiling GSettings schemas..."
+    glib-compile-schemas "$EXTENSION_DIR/schemas/" || {
+        echo -e "${RED}Failed to compile schemas${NC}"
+        exit 1
+    }
+fi
+
 # Check Python dependencies
 echo -e "\n${YELLOW}Checking Python dependencies...${NC}"
 if ! python3 -c "import smbus2" 2>/dev/null; then
@@ -105,22 +114,22 @@ echo -e "\n${GREEN}Installation/Update complete!${NC}"
 
 if [ "$MODE" = "update" ]; then
     echo -e "\n${YELLOW}What's new in this update:${NC}"
-    echo "- Added battery charging detection"
-    echo "- Shows charging icon when plugged in"
-    echo "- Displays charge/discharge rate in menu"
-    echo "- Improved status indicators"
+    echo "- Added display mode settings (icon only, percentage only, or both)"
+    echo "- Configurable through GNOME Extensions preferences"
+    echo "- Settings are now persistent across restarts"
 fi
 
-echo -e "\n${YELLOW}To apply changes:${NC}"
-echo "1. Restart GNOME Shell:"
+echo -e "\n${YELLOW}Next steps:${NC}"
+echo "1. If you don't see the changes take effect, restart GNOME Shell:"
 echo "   - Press Alt+F2"
 echo "   - Type 'r' and press Enter"
 echo "   - Or log out and log back in"
 echo ""
-echo "2. If the extension doesn't appear, enable it manually:"
-echo "   gnome-extensions enable $EXTENSION_NAME"
+echo "2. If the extension still doesn't appear after restarting:"
+echo "   - Disable the extension: gnome-extensions disable $EXTENSION_NAME"
+echo "   - Re-enable it: gnome-extensions enable $EXTENSION_NAME"
 echo ""
-echo "3. Check the extension status:"
+echo "3. To check the extension status:"
 echo "   gnome-extensions info $EXTENSION_NAME"
 
 # Test battery reader if possible
